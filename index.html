@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baptiste Orain | Ingénieur Généraliste</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    colors: {
+                        accent: '#06b6d4', // Cyan 500 for tech feel
+                        dark: '#09090b',
+                        darker: '#050505',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base styles & Lenis Smooth Scroll */
+        html.lenis {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        
+        body {
+            background-color: #050505;
+            color: #f4f4f5;
+            overflow-x: hidden;
+            cursor: none; /* Custom cursor */
+        }
+
+        /* Custom Cursor */
+        .cursor-dot, .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none;
+        }
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #06b6d4;
+        }
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+        body:hover .cursor-outline {
+            opacity: 1;
+        }
+
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: #050505;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .loader-text {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+        }
+
+        /* Noise overlay for texture */
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+        }
+
+        /* Utilities for GSAP */
+        .reveal-text {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+        }
+        .reveal-text .char {
+            transform: translateY(110%);
+            display: inline-block;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .text-outline {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+            color: transparent;
+        }
+        
+        /* Grid background */
+        .bg-grid {
+            background-size: 50px 50px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-accent selection:text-darker">
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Noise Texture -->
+    <div class="noise"></div>
+
+    <!-- Loader -->
+    <div class="loader">
+        <div class="loader-text text-3xl md:text-5xl font-display font-bold text-white overflow-hidden">
+            <div class="loader-inner translate-y-[100%]">INITIALIZING...</div>
+        </div>
+        <div class="w-48 h-[1px] bg-zinc-800 mt-6 relative overflow-hidden">
+            <div class="loader-progress absolute top-0 left-0 h-full w-full bg-accent -translate-x-full"></div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-40 p-6 mix-blend-difference">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="font-display font-bold text-xl tracking-tighter">BO.</div>
+            <div class="hidden md:flex gap-8 text-sm font-medium tracking-wide">
+                <a href="#about" class="hover-magnetic uppercase">Profil</a>
+                <a href="#experience" class="hover-magnetic uppercase">Expériences</a>
+                <a href="#skills" class="hover-magnetic uppercase">Compétences</a>
+                <a href="#contact" class="hover-magnetic uppercase">Contact</a>
+            </div>
+            <a href="mailto:baptiste.orain.pro@gmail.com" class="hover-magnetic flex items-center gap-2 text-sm border border-white/20 rounded-full px-4 py-2 hover:bg-white hover:text-black transition-colors">
+                <i class="ph ph-envelope-simple"></i> Me contacter
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex flex-col justify-center items-center overflow-hidden">
+        <div class="absolute inset-0 bg-grid z-0 opacity-30"></div>
+        
+        <!-- Glowing orb behind text -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[120px] -z-10 orb-anim"></div>
+
+        <div class="z-10 text-center w-full max-w-7xl px-4 mt-20">
+            <p class="hero-subtitle text-accent font-medium tracking-[0.2em] uppercase text-sm md:text-base mb-6 opacity-0">
+                Numérisation / Industrie 4.0 / Robotique
+            </p>
+            <h1 class="font-display text-5xl md:text-8xl lg:text-[9rem] font-bold leading-none tracking-tighter uppercase">
+                <div class="overflow-hidden"><div class="hero-title-line translate-y-[100%]">Baptiste</div></div>
+                <div class="overflow-hidden"><div class="hero-title-line translate-y-[100%] text-outline">Orain</div></div>
+            </h1>
+            <p class="hero-desc mt-8 text-zinc-400 max-w-xl mx-auto text-lg md:text-xl font-light opacity-0">
+                Candidat Cycle Ingénieur Généraliste (Alternance).
+            </p>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 scroll-indicator">
+            <span class="text-xs tracking-widest uppercase">Scroll</span>
+            <div class="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-32 px-4 relative z-10">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <div class="lg:col-span-4">
+                    <h2 class="font-display text-3xl md:text-5xl font-bold uppercase section-title">Profil</h2>
+                    <div class="w-12 h-1 bg-accent mt-6 title-line"></div>
+                </div>
+                <div class="lg:col-span-8">
+                    <p class="text-2xl md:text-4xl font-display leading-tight text-zinc-300 about-text">
+                        Actuellement en Licence Pro CAPPI en alternance chez <span class="text-white font-bold">Actemium (VINCI Energies)</span>, je souhaite développer mes compétences techniques et managériales en intégrant le cycle ingénieur du <span class="text-accent">CESI</span>.
+                    </p>
+                    <p class="mt-8 text-lg text-zinc-400 max-w-2xl about-text delay-1">
+                        Mon objectif : évoluer vers le métier de chargé d'affaires en m'appuyant sur mon expérience terrain, ma rigueur et ma passion pour l'automatisation et la robotique.
+                    </p>
+                    
+                    <div class="mt-12 flex flex-wrap gap-4 about-tags">
+                        <span class="px-5 py-2 rounded-full border border-zinc-800 text-sm tracking-wide text-zinc-300"><i class="ph ph-map-pin mr-2 text-accent"></i>39410, Saint-Aubin</span>
+                        <span class="px-5 py-2 rounded-full border border-zinc-800 text-sm tracking-wide text-zinc-300"><i class="ph ph-car mr-2 text-accent"></i>Permis B - Véhiculé</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience & Education Section -->
+    <section id="experience" class="py-32 px-4 relative z-10 bg-zinc-950">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Experiences -->
+            <div class="mb-32">
+                <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 flex items-center gap-4 section-title">
+                    Expériences <span class="text-outline text-2xl">Pro</span>
+                </h2>
+
+                <div class="relative border-l border-zinc-800 ml-4 md:ml-0 md:border-none">
+                    <!-- Timeline Line for Desktop -->
+                    <div class="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-zinc-800 -translate-x-1/2">
+                        <div class="timeline-progress w-full bg-accent origin-top scale-y-0 h-full"></div>
+                    </div>
+
+                    <!-- Job 1 -->
+                    <div class="timeline-item relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 mb-24 pl-8 md:pl-0">
+                        <div class="md:text-right pt-2 md:pr-12">
+                            <span class="text-accent font-mono text-sm tracking-wider">09 2025 — Aujourd'hui</span>
+                            <h3 class="text-2xl font-display font-bold mt-2">Alternant Technicien Etudes Automatisme</h3>
+                            <h4 class="text-zinc-400 text-lg mt-1">Actemium (Groupe VINCI Energies)</h4>
+                            <p class="text-sm text-zinc-500 mt-1"><i class="ph ph-map-pin"></i> Tavaux, France</p>
+                        </div>
+                        
+                        <!-- Timeline Dot -->
+                        <div class="absolute left-[-5px] md:left-1/2 top-4 md:top-3 w-3 h-3 bg-zinc-900 border-2 border-accent rounded-full md:-translate-x-1/2 z-10 shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
+
+                        <div class="glass-panel p-6 rounded-2xl relative group hover:border-accent/50 transition-colors duration-500">
+                            <p class="text-zinc-300 text-sm leading-relaxed">
+                                <strong class="text-white block mb-2">PROJET MAJEUR: Extension de stockage SILK 1 Client TEPSA Saint-Priest (Site Seveso).</strong>
+                                Rédaction d'une analyse fonctionnelle, programmation des automates (API) et automates de sécurité (SAFETY), développement de la supervision (SCADA) et suivi d'avancement et de coordination technique.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Job 2 -->
+                    <div class="timeline-item relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 pl-8 md:pl-0">
+                        <div class="md:text-right pt-2 md:pr-12 md:col-start-1 md:row-start-1">
+                            <span class="text-accent font-mono text-sm tracking-wider">05 2025 — 07 2025</span>
+                            <h3 class="text-2xl font-display font-bold mt-2">Stagiaire de BTS Automatisme</h3>
+                            <h4 class="text-zinc-400 text-lg mt-1">INEOS Inovyn</h4>
+                            <p class="text-sm text-zinc-500 mt-1"><i class="ph ph-map-pin"></i> Tavaux, France</p>
+                        </div>
+
+                        <!-- Timeline Dot -->
+                        <div class="absolute left-[-5px] md:left-1/2 top-4 md:top-3 w-3 h-3 bg-zinc-900 border-2 border-zinc-600 rounded-full md:-translate-x-1/2 z-10 timeline-dot"></div>
+
+                        <div class="glass-panel p-6 rounded-2xl md:col-start-2 relative group hover:border-zinc-500 transition-colors duration-500">
+                            <ul class="text-zinc-300 text-sm leading-relaxed list-disc list-inside marker:text-accent space-y-2">
+                                <li>Rédaction d'une convention électrique.</li>
+                                <li>Étude d'éclairage avec le logiciel DIALux.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div id="education" class="mt-32">
+                <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 text-right section-title">
+                    <span class="text-outline text-2xl">Parcours</span> Académique
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Edu 1 -->
+                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
+                        <span class="text-accent font-mono text-sm">09/2025 - Présent</span>
+                        <h3 class="text-xl font-bold font-display mt-4 mb-2">Licence Pro CAPPI</h3>
+                        <p class="text-sm text-zinc-400 mb-4">Pôle Formation UIMM, Dole</p>
+                        <p class="text-sm text-zinc-300">Systèmes Automatisés. Projet en équipe de rétrofit d'une machine pharmaceutique automatisée.</p>
+                    </div>
+
+                    <!-- Edu 2 -->
+                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
+                        <span class="text-zinc-500 font-mono text-sm">2023 - 2025</span>
+                        <h3 class="text-xl font-bold font-display mt-4 mb-2">BTS Électrotechnique</h3>
+                        <p class="text-sm text-zinc-400 mb-4">Lycée J. Duhamel, Dole</p>
+                        <p class="text-sm text-zinc-300">Projet de fin d'étude : Conception & Réalisation d'une armoire électrique automatisée de A à Z.</p>
+                    </div>
+
+                    <!-- Edu 3 -->
+                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 opacity-70">
+                        <span class="text-zinc-500 font-mono text-sm">2021 - 2023</span>
+                        <h3 class="text-xl font-bold font-display mt-4 mb-2">Baccalauréat STI2D</h3>
+                        <p class="text-sm text-zinc-400 mb-4">Lycée J. Duhamel, Dole</p>
+                        <p class="text-sm text-zinc-300">Option énergie environnement. Obtenu avec mention.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-32 px-4 relative z-10 overflow-hidden">
+        <!-- Decorative large text -->
+        <div class="absolute top-1/2 left-0 -translate-y-1/2 text-[15vw] font-display font-bold text-white/5 whitespace-nowrap pointer-events-none -z-10 skills-bg-text">
+            INDUSTRIE 4.0 ROBOTIQUE
+        </div>
+
+        <div class="max-w-6xl mx-auto">
+            <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 text-center section-title">Expertises techniques</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                
+                <!-- Hard Skills -->
+                <div>
+                    <h3 class="text-xl font-display text-accent mb-8 border-b border-zinc-800 pb-4">Hard Skills</h3>
+                    <div class="space-y-6">
+                        <div class="skill-item">
+                            <div class="flex justify-between mb-2"><span class="font-medium">Automatisme</span><span class="text-zinc-500 text-sm">TIA Portal, Control Expert</span></div>
+                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[90%] origin-left skill-bar"></div></div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="flex justify-between mb-2"><span class="font-medium">Robotique</span><span class="text-zinc-500 text-sm">Fanuc Roboguide</span></div>
+                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[80%] origin-left skill-bar"></div></div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="flex justify-between mb-2"><span class="font-medium">IHM / Supervision</span><span class="text-zinc-500 text-sm">SCADA (PCVue)</span></div>
+                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[85%] origin-left skill-bar"></div></div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="flex justify-between mb-2"><span class="font-medium">Électricité</span><span class="text-zinc-500 text-sm">SEE Electrical, DIALux</span></div>
+                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[85%] origin-left skill-bar"></div></div>
+                        </div>
+                        <div class="skill-item">
+                            <div class="flex justify-between mb-2"><span class="font-medium">Management</span><span class="text-zinc-500 text-sm">MS Project</span></div>
+                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[75%] origin-left skill-bar"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Soft Skills & Languages -->
+                <div class="space-y-16">
+                    <div>
+                        <h3 class="text-xl font-display text-white mb-8 border-b border-zinc-800 pb-4">Soft Skills</h3>
+                        <div class="flex flex-wrap gap-4">
+                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-users text-accent text-lg"></i> Esprit d'équipe</div>
+                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-arrows-merge text-accent text-lg"></i> Capacité d'adaptation</div>
+                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-target text-accent text-lg"></i> Rigueur</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-display text-white mb-8 border-b border-zinc-800 pb-4">Langues</h3>
+                        <div class="flex gap-8">
+                            <div>
+                                <p class="text-white font-medium">Français</p>
+                                <p class="text-sm text-zinc-500">Natif</p>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium">Anglais</p>
+                                <p class="text-sm text-zinc-500">Niveau B1</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Contact -->
+    <footer id="contact" class="bg-black py-24 relative overflow-hidden border-t border-zinc-900">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <h2 class="text-5xl md:text-8xl font-display font-bold uppercase tracking-tighter mb-12 footer-title">
+                Prêt à <span class="text-outline text-accent">innover</span> ?
+            </h2>
+            
+            <p class="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-16">
+                À la recherche de nouveaux défis en tant qu'ingénieur. N'hésitez pas à me contacter pour échanger sur vos projets d'automatisation et d'industrie 4.0.
+            </p>
+
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-24">
+                <a href="mailto:baptiste.orain.pro@gmail.com" class="hover-magnetic flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-medium hover:scale-105 transition-transform">
+                    <i class="ph ph-paper-plane-tilt text-xl"></i> Me contacter par mail
+                </a>
+                <a href="https://www.linkedin.com/in/baptiste-orain" target="_blank" class="hover-magnetic flex items-center gap-3 glass-panel px-8 py-4 rounded-full font-medium text-white hover:bg-zinc-800 transition-colors">
+                    <i class="ph ph-linkedin-logo text-xl text-[#0A66C2]"></i> LinkedIn
+                </a>
+                <a href="tel:+33675253768" class="hover-magnetic flex items-center gap-3 glass-panel px-8 py-4 rounded-full font-medium text-white hover:bg-zinc-800 transition-colors">
+                    <i class="ph ph-phone text-xl text-accent"></i> 06 75 25 37 68
+                </a>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center text-zinc-600 text-sm pt-8 border-t border-zinc-900">
+                <p>&copy; 2026 Baptiste Orain. Tous droits réservés.</p>
+                <p class="flex items-center gap-1 mt-2 md:mt-0">Design & Code pour <i class="ph ph-robot text-accent"></i> l'Industrie 4.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GSAP & Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- SplitText alternative (Simple custom logic to split text into words/chars for animation without Club GreenSock plugin) -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+
+    <script>
+        // --- 1. SMOOTH SCROLL (Lenis) ---
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+        })
+
+        function raf(time) {
+            lenis.raf(time)
+            requestAnimationFrame(raf)
+        }
+        requestAnimationFrame(raf)
+
+        // Integrate Lenis with GSAP ScrollTrigger
+        gsap.registerPlugin(ScrollTrigger);
+        
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => {
+          lenis.raf(time * 1000);
+        });
+        gsap.ticker.lagSmoothing(0, 0);
+
+        // --- 2. CUSTOM CURSOR ---
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with slight delay using GSAP
+            gsap.to(cursorOutline, {
+                x: posX,
+                y: posY,
+                duration: 0.15,
+                ease: "power2.out"
+            });
+        });
+
+        // Hover effects for cursor
+        const links = document.querySelectorAll('a, button, .hover-magnetic');
+        links.forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                gsap.to(cursorOutline, { scale: 1.5, backgroundColor: "rgba(6, 182, 212, 0.1)", duration: 0.3 });
+                gsap.to(cursorDot, { scale: 0, duration: 0.3 });
+            });
+            link.addEventListener('mouseleave', () => {
+                gsap.to(cursorOutline, { scale: 1, backgroundColor: "transparent", duration: 0.3 });
+                gsap.to(cursorDot, { scale: 1, duration: 0.3 });
+            });
+        });
+
+
+        // --- 4. ANIMATIONS (GSAP) ---
+        
+        // Loader Timeline
+        const tlLoader = gsap.timeline();
+        
+        tlLoader.to(".loader-progress", {
+            x: "0%",
+            duration: 1.5,
+            ease: "power4.inOut"
+        })
+        .to(".loader-inner", {
+            y: "0%",
+            duration: 0.8,
+            ease: "power4.out"
+        }, "-=0.5")
+        .to(".loader-inner", {
+            y: "-100%",
+            duration: 0.6,
+            delay: 0.5,
+            ease: "power4.in"
+        })
+        .to(".loader", {
+            y: "-100%",
+            duration: 1,
+            ease: "power4.inOut"
+        }, "-=0.2")
+        
+        // Hero Animation (Starts after loader)
+        .to(".hero-subtitle", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
+        .to(".hero-title-line", { y: "0%", duration: 1.2, stagger: 0.15, ease: "power4.out" }, "-=0.8")
+        .to(".hero-desc", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.8")
+        .to(".scroll-indicator", { opacity: 0.5, y: 0, duration: 1, ease: "power3.out" }, "-=0.8");
+
+        // Subtle Orb Parallax on mouse move
+        const orb = document.querySelector('.orb-anim');
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 50;
+            const y = (e.clientY / window.innerHeight - 0.5) * 50;
+            gsap.to(orb, { x: x, y: y, duration: 2, ease: "power2.out" });
+        });
+
+        // Scroll Animations - Sections
+        const sectionTitles = document.querySelectorAll('.section-title');
+        sectionTitles.forEach(title => {
+            gsap.from(title, {
+                scrollTrigger: {
+                    trigger: title,
+                    start: "top 85%",
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        });
+
+        // About text stagger
+        gsap.from(".about-text", {
+            scrollTrigger: { trigger: "#about", start: "top 70%" },
+            y: 30, opacity: 0, duration: 1, stagger: 0.2, ease: "power3.out"
+        });
+        gsap.from(".about-tags span", {
+            scrollTrigger: { trigger: ".about-tags", start: "top 85%" },
+            scale: 0.8, opacity: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.7)"
+        });
+
+        // Timeline (Experience) Line Draw
+        if (window.innerWidth > 768) {
+            gsap.to(".timeline-progress", {
+                scrollTrigger: {
+                    trigger: "#experience",
+                    start: "top 50%",
+                    end: "bottom 80%",
+                    scrub: 1
+                },
+                scaleY: 1,
+                ease: "none"
+            });
+        }
+
+        // Timeline items fade in
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        timelineItems.forEach((item, i) => {
+            gsap.from(item, {
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 80%",
+                },
+                y: 50,
+                opacity: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+        });
+
+        // Education Cards stagger
+        gsap.from(".edu-card", {
+            scrollTrigger: { trigger: "#education", start: "top 75%" },
+            y: 50, opacity: 0, duration: 0.8, stagger: 0.2, ease: "power3.out"
+        });
+
+        // Skills Bars
+        const skillBars = document.querySelectorAll('.skill-bar');
+        skillBars.forEach(bar => {
+            gsap.from(bar, {
+                scrollTrigger: {
+                    trigger: bar,
+                    start: "top 90%"
+                },
+                scaleX: 0,
+                duration: 1.5,
+                ease: "power4.out"
+            });
+        });
+
+        // Soft skills tag stagger
+        gsap.from(".soft-skill-tag", {
+            scrollTrigger: { trigger: ".soft-skill-tag", start: "top 85%" },
+            y: 20, opacity: 0, duration: 0.5, stagger: 0.1, ease: "power2.out"
+        });
+
+        // Parallax big background text
+        gsap.to(".skills-bg-text", {
+            scrollTrigger: {
+                trigger: "#skills",
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1
+            },
+            x: "-20%",
+            ease: "none"
+        });
+
+        // Footer Title
+        gsap.from(".footer-title", {
+            scrollTrigger: { trigger: "footer", start: "top 80%" },
+            y: 50, opacity: 0, duration: 1, ease: "power3.out"
+        });
+
+    </script>
+</body>
+</html>
