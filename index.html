@@ -1,618 +1,1202 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baptiste Orain | Ingénieur Généraliste</title>
+    <title>Baptiste ORAIN - Portfolio</title>
     
-    <!-- Fonts -->
+    <!-- Google Fonts: Plus Jakarta Sans for a geometric, modern and clean look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <!-- Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Syne', 'sans-serif'],
-                    },
-                    colors: {
-                        accent: '#06b6d4', // Cyan 500 for tech feel
-                        dark: '#09090b',
-                        darker: '#050505',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Lenis Smooth Scroll -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.39/dist/lenis.min.js"></script>
+
+    <!-- Three.js (Pour le fond liquide Color Bends) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
-        /* Base styles & Lenis Smooth Scroll */
-        html.lenis {
-            height: auto;
-        }
-        .lenis.lenis-smooth {
-            scroll-behavior: auto;
-        }
-        .lenis.lenis-smooth [data-lenis-prevent] {
-            overscroll-behavior: contain;
-        }
-        .lenis.lenis-stopped {
-            overflow: hidden;
-        }
-        
-        body {
-            background-color: #050505;
-            color: #f4f4f5;
-            overflow-x: hidden;
-            cursor: none; /* Custom cursor */
+        /* ==========================================================================
+           1. VARIABLES & THEMES (Zero Grain, Ultra Smooth)
+           ========================================================================== */
+        :root {
+            --bg-color: #fcfcfc;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --accent: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(0, 0, 0, 0.04);
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+            --pill-bg: #f3f4f6;
+            --pill-text: #111111;
         }
 
-        /* Custom Cursor */
-        .cursor-dot, .cursor-outline {
+        [data-theme="dark"] {
+            --bg-color: #0a0a0c;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #60a5fa;
+            --glass-bg: rgba(20, 20, 25, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --pill-bg: #1e1e24;
+            --pill-text: #ffffff;
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE
+           ========================================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Hide default cursor for custom one */
+        }
+
+        html {
+            /* scroll-behavior: smooth; Retiré car géré par Lenis maintenant */
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color); /* RESTAURÉ : Permet d'avoir le fond uni propre quand le liquide s'efface */
+            color: var(--text-main);
+        }
+
+        /* Classes pour la transition fluide du thème */
+        .theme-transitioning,
+        .theme-transitioning * {
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        fill 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                        stroke 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* Garder les textes du menu 100% opaques pendant la transition pour la lisibilité */
+        .theme-transitioning .nav-links a {
+            opacity: 1 !important;
+        }
+
+        body {
+            background-color: transparent;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* ==========================================================================
+           FONDS : THREE.JS BACKGROUND
+           ========================================================================== */
+        #webgl-canvas {
             position: fixed;
             top: 0;
             left: 0;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            z-index: 9999;
+            width: 100vw;
+            height: 100vh;
+            z-index: -999;
             pointer-events: none;
+            /* GSAP anime les couleurs du shader, pas besoin de transition CSS ici */
         }
+
+        ::selection {
+            background: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* ==========================================================================
+           3. CUSTOM CURSOR
+           ========================================================================== */
         .cursor-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #06b6d4;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-main);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s;
+            mix-blend-mode: difference;
         }
-        .cursor-outline {
+
+        .cursor-dot.hover {
             width: 40px;
             height: 40px;
-            border: 1px solid rgba(6, 182, 212, 0.5);
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
+            background-color: rgba(255, 255, 255, 1);
         }
-        body:hover .cursor-outline {
+
+        /* ==========================================================================
+           4. NAVIGATION (Glassmorphism Pill)
+           ========================================================================== */
+        nav {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 999px;
+            z-index: 1000;
+            box-shadow: var(--card-shadow);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .nav-links a {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main); /* FIX: Force la couleur pour garantir que le navigateur calcule bien la transition */
+            opacity: 0.7;
+            position: relative;
+            padding: 0.25rem 0; /* Augmente la zone cliquable pour la stabilité */
+            transition: opacity 0.3s ease, color 0.3s ease; /* Retrait du transform (source du bug de clignotement) */
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
             opacity: 1;
         }
 
-        /* Loading Screen */
-        .loader {
-            position: fixed;
-            inset: 0;
-            background: #050505;
-            z-index: 10000;
+        /* La bille magique flottante qui remplace les ::after */
+        .nav-active-indicator {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #theme-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        #theme-toggle:hover {
+            background: var(--glass-border);
+        }
+
+        @keyframes spin-smooth {
+            from { transform: rotate(0deg) scale(1.1); }
+            to { transform: rotate(360deg) scale(1.1); }
+        }
+
+        @keyframes spin-fast {
+            from { transform: rotate(0deg) scale(1.3); }
+            to { transform: rotate(360deg) scale(1.3); }
+        }
+
+        #theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: transform 0.3s ease;
+        }
+
+        #theme-toggle:hover svg {
+            animation: spin-smooth 6s linear infinite;
+            transform: scale(1.1);
+        }
+
+        #theme-toggle.spin-click svg {
+            animation: spin-fast 1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* ==========================================================================
+           5. SECTIONS & LAYOUT
+           ========================================================================== */
+        section {
+            padding: 8rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            letter-spacing: -0.02em;
+        }
+
+        /* ==========================================================================
+           6. HERO SECTION
+           ========================================================================== */
+        #hero {
+            height: 100vh;
+            display: flex;
             flex-direction: column;
-        }
-        .loader-text {
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
         }
 
-        /* Utilities for GSAP */
-        .reveal-text {
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 7rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
         }
-        .reveal-text .char {
-            transform: translateY(110%);
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: var(--text-muted);
+            font-weight: 400;
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .btn-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2.5rem;
+            background: var(--text-main);
+            color: var(--bg-color);
+            font-weight: 600;
+            border-radius: 999px;
+            font-size: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-pill:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        [data-theme="dark"] .btn-pill:hover {
+             box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+        }
+
+        /* ==========================================================================
+           7. ABOUT SECTION
+           ========================================================================== */
+        .about-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            max-width: 900px;
+        }
+        
+        .about-text strong {
+            color: var(--text-main);
+        }
+
+        .specialty {
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* ==========================================================================
+           8. SKILLS SECTION (Badges)
+           ========================================================================== */
+        .skills-category {
+            margin-bottom: 3rem;
+        }
+
+        .skills-category h3 {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .badge {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 0.8rem 1.5rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1rem;
+            backdrop-filter: blur(8px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+
+        .badge:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: var(--card-shadow);
+            background: var(--bg-color);
+        }
+
+        /* ==========================================================================
+           9. EXPERIENCE & EDUCATION (Cards)
+           ========================================================================== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            position: relative;
+            /* overflow: hidden supprimé pour permettre l'affichage des points de timeline */
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-date {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* ==========================================================================
+           10. CONTACT SECTION
+           ========================================================================== */
+        #contact {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 8rem;
+        }
+
+        .contact-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 4rem 3rem;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: var(--card-shadow);
+        }
+
+        .contact-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .contact-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        .contact-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .contact-email {
+            font-size: clamp(1.2rem, 4vw, 2.5rem);
+            font-weight: 800;
+            color: var(--text-main);
+            position: relative;
             display: inline-block;
-        }
-        
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-self: center;
         }
 
-        .text-outline {
-            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
-            color: transparent;
+        .contact-email::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent);
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.4s cubic-bezier(0.86, 0, 0.07, 1);
         }
-        
-        /* Grid background */
-        .bg-grid {
-            background-size: 50px 50px;
-            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+
+        .contact-email:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .contact-phone {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+
+        .contact-phone:hover {
+            color: var(--text-main);
+        }
+
+        .contact-social {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-linkedin-simple {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: #0077b5;
+            color: #ffffff;
+            border-radius: 50%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        }
+
+        .btn-linkedin-simple:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 20px rgba(0, 119, 181, 0.3);
+            background: #006097;
+        }
+
+        .btn-linkedin-simple svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* ==========================================================================
+           11. MARQUEE & TIMELINE
+           ========================================================================== */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 2rem 0;
+            display: flex;
+            align-items: center;
+        }
+        .marquee-text {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            white-space: nowrap;
+            color: transparent;
+            -webkit-text-stroke: 1px var(--text-muted);
+            opacity: 0.2;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        [data-theme="dark"] .marquee-text {
+            opacity: 0.4;
+        }
+
+        .experience-wrapper {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        @media (min-width: 768px) {
+            .experience-wrapper {
+                padding-left: 4.5rem;
+            }
+        }
+        .timeline-track {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 2px;
+            background: var(--glass-border);
+            border-radius: 2px;
+        }
+        .timeline-progress {
+            position: absolute;
+            top: 0;
+            left: -1px;
+            width: 4px;
+            height: 0%;
+            background: var(--accent);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -2.5rem;
+            top: 3.5rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 2px solid var(--accent);
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        @media (min-width: 768px) {
+            .timeline-dot {
+                left: -4.5rem;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                width: 90%;
+                justify-content: space-between;
+                padding: 1rem;
+            }
+            .nav-links {
+                display: none; /* Keep it minimal on mobile, or implement a burger */
+            }
+            section {
+                padding: 5rem 1.5rem;
+            }
+            .contact-item {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
-<body class="antialiased selection:bg-accent selection:text-darker">
+<body>
+
+    <!-- Three.js WebGL Background (ReactBits Color Bends) -->
+    <canvas id="webgl-canvas"></canvas>
 
     <!-- Custom Cursor -->
     <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
-
-    <!-- Noise Texture -->
-    <div class="noise"></div>
-
-    <!-- Loader -->
-    <div class="loader">
-        <div class="loader-text text-3xl md:text-5xl font-display font-bold text-white overflow-hidden">
-            <div class="loader-inner translate-y-[100%]">INITIALIZING...</div>
-        </div>
-        <div class="w-48 h-[1px] bg-zinc-800 mt-6 relative overflow-hidden">
-            <div class="loader-progress absolute top-0 left-0 h-full w-full bg-accent -translate-x-full"></div>
-        </div>
-    </div>
 
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-40 p-6 mix-blend-difference">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="font-display font-bold text-xl tracking-tighter">BO.</div>
-            <div class="hidden md:flex gap-8 text-sm font-medium tracking-wide">
-                <a href="#about" class="hover-magnetic uppercase">Profil</a>
-                <a href="#experience" class="hover-magnetic uppercase">Expériences</a>
-                <a href="#skills" class="hover-magnetic uppercase">Compétences</a>
-                <a href="#contact" class="hover-magnetic uppercase">Contact</a>
-            </div>
-            <a href="mailto:baptiste.orain.pro@gmail.com" class="hover-magnetic flex items-center gap-2 text-sm border border-white/20 rounded-full px-4 py-2 hover:bg-white hover:text-black transition-colors">
-                <i class="ph ph-envelope-simple"></i> Me contacter
-            </a>
+    <nav class="interactive">
+        <div class="nav-links">
+            <a href="#about" class="interactive">À Propos</a>
+            <a href="#skills" class="interactive">Compétences</a>
+            <a href="#experience" class="interactive">Expériences</a>
+            <a href="#contact" class="interactive">Contact</a>
         </div>
+        <button id="theme-toggle" class="interactive" aria-label="Toggle Theme">
+            <!-- Moon SVG for light mode -->
+            <svg class="moon-icon" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <!-- Sun SVG hidden by default (handled in JS) -->
+            <svg class="sun-icon" viewBox="0 0 24 24" style="display: none;">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative h-screen flex flex-col justify-center items-center overflow-hidden">
-        <div class="absolute inset-0 bg-grid z-0 opacity-30"></div>
-        
-        <!-- Glowing orb behind text -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[120px] -z-10 orb-anim"></div>
-
-        <div class="z-10 text-center w-full max-w-7xl px-4 mt-20">
-            <p class="hero-subtitle text-accent font-medium tracking-[0.2em] uppercase text-sm md:text-base mb-6 opacity-0">
-                Numérisation / Industrie 4.0 / Robotique
-            </p>
-            <h1 class="font-display text-5xl md:text-8xl lg:text-[9rem] font-bold leading-none tracking-tighter uppercase">
-                <div class="overflow-hidden"><div class="hero-title-line translate-y-[100%]">Baptiste</div></div>
-                <div class="overflow-hidden"><div class="hero-title-line translate-y-[100%] text-outline">Orain</div></div>
-            </h1>
-            <p class="hero-desc mt-8 text-zinc-400 max-w-xl mx-auto text-lg md:text-xl font-light opacity-0">
-                Candidat Cycle Ingénieur Généraliste (Alternance).
-            </p>
+    <header id="hero">
+        <h1 class="hero-title gsap-hero">Baptiste<br>Orain</h1>
+        <p class="hero-subtitle gsap-hero">Candidat Cycle Ingénieur Généraliste - Alternance</p>
+        <div class="gsap-hero">
+            <a href="#about" class="btn-pill interactive">Explorer</a>
         </div>
+    </header>
 
-        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 scroll-indicator">
-            <span class="text-xs tracking-widest uppercase">Scroll</span>
-            <div class="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
+    <!-- Marquee Text Animation -->
+    <div class="marquee-container">
+        <div class="marquee-text">
+            INDUSTRIE 4.0 • ROBOTIQUE • AUTOMATISME • INNOVATION • INDUSTRIE 4.0 • ROBOTIQUE • AUTOMATISME • INNOVATION • INDUSTRIE 4.0 • ROBOTIQUE • AUTOMATISME • INNOVATION •
         </div>
-    </section>
+    </div>
 
     <!-- About Section -->
-    <section id="about" class="py-32 px-4 relative z-10">
-        <div class="max-w-6xl mx-auto">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                <div class="lg:col-span-4">
-                    <h2 class="font-display text-3xl md:text-5xl font-bold uppercase section-title">Profil</h2>
-                    <div class="w-12 h-1 bg-accent mt-6 title-line"></div>
-                </div>
-                <div class="lg:col-span-8">
-                    <p class="text-2xl md:text-4xl font-display leading-tight text-zinc-300 about-text">
-                        Actuellement en Licence Pro CAPPI en alternance chez <span class="text-white font-bold">Actemium (VINCI Energies)</span>, je souhaite développer mes compétences techniques et managériales en intégrant le cycle ingénieur du <span class="text-accent">CESI</span>.
-                    </p>
-                    <p class="mt-8 text-lg text-zinc-400 max-w-2xl about-text delay-1">
-                        Mon objectif : évoluer vers le métier de chargé d'affaires en m'appuyant sur mon expérience terrain, ma rigueur et ma passion pour l'automatisation et la robotique.
-                    </p>
-                    
-                    <div class="mt-12 flex flex-wrap gap-4 about-tags">
-                        <span class="px-5 py-2 rounded-full border border-zinc-800 text-sm tracking-wide text-zinc-300"><i class="ph ph-map-pin mr-2 text-accent"></i>39410, Saint-Aubin</span>
-                        <span class="px-5 py-2 rounded-full border border-zinc-800 text-sm tracking-wide text-zinc-300"><i class="ph ph-car mr-2 text-accent"></i>Permis B - Véhiculé</span>
-                    </div>
-                </div>
+    <section id="about">
+        <h2 class="section-title gsap-title">Profil</h2>
+        <p class="about-text gsap-fade">
+            Actuellement en <strong>Licence Pro CAPPI</strong> en alternance chez <strong>Actemium</strong> (VINCI Energies), je souhaite développer mes compétences techniques et managériales en intégrant le cycle ingénieur du CESI. 
+            <br><br>
+            Mon objectif : évoluer vers le métier de <strong>chargé d'affaires</strong> en m'appuyant sur mon expérience terrain et ma rigueur.
+        </p>
+        <p class="specialty gsap-fade">Spécialité : Numérisation des métiers de l'ingénieur • Industrie 4.0 • Prototypage • Robotique</p>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills">
+        <h2 class="section-title gsap-title">Compétences</h2>
+        
+        <div class="skills-category gsap-fade">
+            <h3>Langages & Logiciels</h3>
+            <div class="badges-container">
+                <div class="badge interactive">TIA Portal</div>
+                <div class="badge interactive">Control Expert</div>
+                <div class="badge interactive">Fanuc Roboguide</div>
+                <div class="badge interactive">PCVue (SCADA)</div>
+                <div class="badge interactive">SEE Electrical</div>
+            </div>
+        </div>
+
+        <div class="skills-category gsap-fade">
+            <h3>Management</h3>
+            <div class="badges-container">
+                <div class="badge interactive">MS Project</div>
+            </div>
+        </div>
+
+        <div class="skills-category gsap-fade">
+            <h3>Soft Skills</h3>
+            <div class="badges-container">
+                <div class="badge interactive">Esprit d'équipe</div>
+                <div class="badge interactive">Capacité d'adaptation</div>
+                <div class="badge interactive">Rigueur</div>
             </div>
         </div>
     </section>
 
     <!-- Experience & Education Section -->
-    <section id="experience" class="py-32 px-4 relative z-10 bg-zinc-950">
-        <div class="max-w-6xl mx-auto">
-            
-            <!-- Experiences -->
-            <div class="mb-32">
-                <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 flex items-center gap-4 section-title">
-                    Expériences <span class="text-outline text-2xl">Pro</span>
-                </h2>
-
-                <div class="relative border-l border-zinc-800 ml-4 md:ml-0 md:border-none">
-                    <!-- Timeline Line for Desktop -->
-                    <div class="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-zinc-800 -translate-x-1/2">
-                        <div class="timeline-progress w-full bg-accent origin-top scale-y-0 h-full"></div>
-                    </div>
-
-                    <!-- Job 1 -->
-                    <div class="timeline-item relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 mb-24 pl-8 md:pl-0">
-                        <div class="md:text-right pt-2 md:pr-12">
-                            <span class="text-accent font-mono text-sm tracking-wider">09 2025 — Aujourd'hui</span>
-                            <h3 class="text-2xl font-display font-bold mt-2">Alternant Technicien Etudes Automatisme</h3>
-                            <h4 class="text-zinc-400 text-lg mt-1">Actemium (Groupe VINCI Energies)</h4>
-                            <p class="text-sm text-zinc-500 mt-1"><i class="ph ph-map-pin"></i> Tavaux, France</p>
-                        </div>
-                        
-                        <!-- Timeline Dot -->
-                        <div class="absolute left-[-5px] md:left-1/2 top-4 md:top-3 w-3 h-3 bg-zinc-900 border-2 border-accent rounded-full md:-translate-x-1/2 z-10 shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
-
-                        <div class="glass-panel p-6 rounded-2xl relative group hover:border-accent/50 transition-colors duration-500">
-                            <p class="text-zinc-300 text-sm leading-relaxed">
-                                <strong class="text-white block mb-2">PROJET MAJEUR: Extension de stockage SILK 1 Client TEPSA Saint-Priest (Site Seveso).</strong>
-                                Rédaction d'une analyse fonctionnelle, programmation des automates (API) et automates de sécurité (SAFETY), développement de la supervision (SCADA) et suivi d'avancement et de coordination technique.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Job 2 -->
-                    <div class="timeline-item relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 pl-8 md:pl-0">
-                        <div class="md:text-right pt-2 md:pr-12 md:col-start-1 md:row-start-1">
-                            <span class="text-accent font-mono text-sm tracking-wider">05 2025 — 07 2025</span>
-                            <h3 class="text-2xl font-display font-bold mt-2">Stagiaire de BTS Automatisme</h3>
-                            <h4 class="text-zinc-400 text-lg mt-1">INEOS Inovyn</h4>
-                            <p class="text-sm text-zinc-500 mt-1"><i class="ph ph-map-pin"></i> Tavaux, France</p>
-                        </div>
-
-                        <!-- Timeline Dot -->
-                        <div class="absolute left-[-5px] md:left-1/2 top-4 md:top-3 w-3 h-3 bg-zinc-900 border-2 border-zinc-600 rounded-full md:-translate-x-1/2 z-10 timeline-dot"></div>
-
-                        <div class="glass-panel p-6 rounded-2xl md:col-start-2 relative group hover:border-zinc-500 transition-colors duration-500">
-                            <ul class="text-zinc-300 text-sm leading-relaxed list-disc list-inside marker:text-accent space-y-2">
-                                <li>Rédaction d'une convention électrique.</li>
-                                <li>Étude d'éclairage avec le logiciel DIALux.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+    <section id="experience">
+        <h2 class="section-title gsap-title">Expériences & Formations</h2>
+        
+        <div class="experience-wrapper">
+            <div class="timeline-track">
+                <div class="timeline-progress"></div>
             </div>
+            
+            <div class="cards-list">
+                <!-- Experience 1 -->
+                <div class="card gsap-card interactive">
+                    <div class="timeline-dot"></div>
+                    <span class="card-date">09/2025 - Présent</span>
+                    <h3 class="card-title">Actemium <span style="font-weight:400; font-size:1rem;">(VINCI Energies)</span></h3>
+                    <h4 class="card-subtitle">Alternant Technicien Etudes Automatisme</h4>
+                    <p class="card-desc">
+                        <strong>PROJET MAJEUR :</strong> Extension de stockage SILK 1 Client TEPSA Saint-Priest (Site Seveso).<br><br>
+                        Rédaction d'analyse fonctionnelle, programmation des automates (API) et automates de sécurité (SAFETY), développement de la supervision (SCADA), suivi d'avancement et coordination technique.
+                    </p>
+                </div>
 
-            <!-- Education -->
-            <div id="education" class="mt-32">
-                <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 text-right section-title">
-                    <span class="text-outline text-2xl">Parcours</span> Académique
-                </h2>
+                <!-- Experience 2 -->
+                <div class="card gsap-card interactive">
+                    <div class="timeline-dot"></div>
+                    <span class="card-date">05/2025 - 07/2025</span>
+                    <h3 class="card-title">INEOS Inovyn</h3>
+                    <h4 class="card-subtitle">Stagiaire Automatisme & Électricité</h4>
+                    <p class="card-desc">
+                        Rédaction d'une convention électrique et réalisation d'une étude d'éclairage via le logiciel DIALux.
+                    </p>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Edu 1 -->
-                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
-                        <span class="text-accent font-mono text-sm">09/2025 - Présent</span>
-                        <h3 class="text-xl font-bold font-display mt-4 mb-2">Licence Pro CAPPI</h3>
-                        <p class="text-sm text-zinc-400 mb-4">Pôle Formation UIMM, Dole</p>
-                        <p class="text-sm text-zinc-300">Systèmes Automatisés. Projet en équipe de rétrofit d'une machine pharmaceutique automatisée.</p>
-                    </div>
+                <!-- Education 1 -->
+                <div class="card gsap-card interactive">
+                    <div class="timeline-dot"></div>
+                    <span class="card-date">09/2025 - Présent</span>
+                    <h3 class="card-title">Licence Pro CAPPI</h3>
+                    <h4 class="card-subtitle">Pôle Formation UIMM</h4>
+                    <p class="card-desc">
+                        Parcours Systèmes Automatisés.<br>
+                        <strong>Projet :</strong> Rétrofit en équipe d'une machine pharmaceutique automatisée. Compétences en management, robotique et automatisme.
+                    </p>
+                </div>
 
-                    <!-- Edu 2 -->
-                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
-                        <span class="text-zinc-500 font-mono text-sm">2023 - 2025</span>
-                        <h3 class="text-xl font-bold font-display mt-4 mb-2">BTS Électrotechnique</h3>
-                        <p class="text-sm text-zinc-400 mb-4">Lycée J. Duhamel, Dole</p>
-                        <p class="text-sm text-zinc-300">Projet de fin d'étude : Conception & Réalisation d'une armoire électrique automatisée de A à Z.</p>
-                    </div>
-
-                    <!-- Edu 3 -->
-                    <div class="edu-card glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 opacity-70">
-                        <span class="text-zinc-500 font-mono text-sm">2021 - 2023</span>
-                        <h3 class="text-xl font-bold font-display mt-4 mb-2">Baccalauréat STI2D</h3>
-                        <p class="text-sm text-zinc-400 mb-4">Lycée J. Duhamel, Dole</p>
-                        <p class="text-sm text-zinc-300">Option énergie environnement. Obtenu avec mention.</p>
-                    </div>
+                <!-- Education 2 -->
+                <div class="card gsap-card interactive">
+                    <div class="timeline-dot"></div>
+                    <span class="card-date">09/2023 - 07/2025</span>
+                    <h3 class="card-title">BTS Électrotechnique</h3>
+                    <h4 class="card-subtitle">Lycée Jacques Duhamel</h4>
+                    <p class="card-desc">
+                        <strong>Projet de fin d'étude :</strong> Conception & réalisation d'une armoire électrique automatisée (Planification, budget, rédaction dossier, choix techniques, tests).
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Skills Section -->
-    <section id="skills" class="py-32 px-4 relative z-10 overflow-hidden">
-        <!-- Decorative large text -->
-        <div class="absolute top-1/2 left-0 -translate-y-1/2 text-[15vw] font-display font-bold text-white/5 whitespace-nowrap pointer-events-none -z-10 skills-bg-text">
-            INDUSTRIE 4.0 ROBOTIQUE
-        </div>
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="contact-box gsap-card interactive">
+            <h2 class="contact-title">Prêt à collaborer ?</h2>
+            <p class="contact-subtitle">N'hésitez pas à me contacter pour une opportunité d'alternance ou pour échanger sur un projet.</p>
+            
+            <div class="contact-methods">
+                <a href="mailto:baptiste.orain.pro@gmail.com" class="contact-email interactive">baptiste.orain.pro@gmail.com</a>
+                <a href="tel:+33675253768" class="contact-phone interactive">(+33) 6 75 25 37 68</a>
+            </div>
 
-        <div class="max-w-6xl mx-auto">
-            <h2 class="font-display text-3xl md:text-5xl font-bold uppercase mb-16 text-center section-title">Expertises techniques</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
-                
-                <!-- Hard Skills -->
-                <div>
-                    <h3 class="text-xl font-display text-accent mb-8 border-b border-zinc-800 pb-4">Hard Skills</h3>
-                    <div class="space-y-6">
-                        <div class="skill-item">
-                            <div class="flex justify-between mb-2"><span class="font-medium">Automatisme</span><span class="text-zinc-500 text-sm">TIA Portal, Control Expert</span></div>
-                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[90%] origin-left skill-bar"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <div class="flex justify-between mb-2"><span class="font-medium">Robotique</span><span class="text-zinc-500 text-sm">Fanuc Roboguide</span></div>
-                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[80%] origin-left skill-bar"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <div class="flex justify-between mb-2"><span class="font-medium">IHM / Supervision</span><span class="text-zinc-500 text-sm">SCADA (PCVue)</span></div>
-                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-accent w-[85%] origin-left skill-bar"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <div class="flex justify-between mb-2"><span class="font-medium">Électricité</span><span class="text-zinc-500 text-sm">SEE Electrical, DIALux</span></div>
-                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[85%] origin-left skill-bar"></div></div>
-                        </div>
-                        <div class="skill-item">
-                            <div class="flex justify-between mb-2"><span class="font-medium">Management</span><span class="text-zinc-500 text-sm">MS Project</span></div>
-                            <div class="w-full h-1 bg-zinc-900 rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[75%] origin-left skill-bar"></div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Soft Skills & Languages -->
-                <div class="space-y-16">
-                    <div>
-                        <h3 class="text-xl font-display text-white mb-8 border-b border-zinc-800 pb-4">Soft Skills</h3>
-                        <div class="flex flex-wrap gap-4">
-                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-users text-accent text-lg"></i> Esprit d'équipe</div>
-                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-arrows-merge text-accent text-lg"></i> Capacité d'adaptation</div>
-                            <div class="soft-skill-tag px-6 py-3 glass-panel rounded-full text-zinc-300 font-medium text-sm flex items-center gap-2"><i class="ph ph-target text-accent text-lg"></i> Rigueur</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-xl font-display text-white mb-8 border-b border-zinc-800 pb-4">Langues</h3>
-                        <div class="flex gap-8">
-                            <div>
-                                <p class="text-white font-medium">Français</p>
-                                <p class="text-sm text-zinc-500">Natif</p>
-                            </div>
-                            <div>
-                                <p class="text-white font-medium">Anglais</p>
-                                <p class="text-sm text-zinc-500">Niveau B1</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="contact-social">
+                <a href="https://www.linkedin.com/in/baptiste-orain" target="_blank" class="btn-linkedin-simple interactive" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- Footer / Contact -->
-    <footer id="contact" class="bg-black py-24 relative overflow-hidden border-t border-zinc-900">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <h2 class="text-5xl md:text-8xl font-display font-bold uppercase tracking-tighter mb-12 footer-title">
-                Prêt à <span class="text-outline text-accent">innover</span> ?
-            </h2>
-            
-            <p class="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto mb-16">
-                À la recherche de nouveaux défis en tant qu'ingénieur. N'hésitez pas à me contacter pour échanger sur vos projets d'automatisation et d'industrie 4.0.
-            </p>
-
-            <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-24">
-                <a href="mailto:baptiste.orain.pro@gmail.com" class="hover-magnetic flex items-center gap-3 bg-white text-black px-8 py-4 rounded-full font-medium hover:scale-105 transition-transform">
-                    <i class="ph ph-paper-plane-tilt text-xl"></i> Me contacter par mail
-                </a>
-                <a href="https://www.linkedin.com/in/baptiste-orain" target="_blank" class="hover-magnetic flex items-center gap-3 glass-panel px-8 py-4 rounded-full font-medium text-white hover:bg-zinc-800 transition-colors">
-                    <i class="ph ph-linkedin-logo text-xl text-[#0A66C2]"></i> LinkedIn
-                </a>
-                <a href="tel:+33675253768" class="hover-magnetic flex items-center gap-3 glass-panel px-8 py-4 rounded-full font-medium text-white hover:bg-zinc-800 transition-colors">
-                    <i class="ph ph-phone text-xl text-accent"></i> 06 75 25 37 68
-                </a>
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between items-center text-zinc-600 text-sm pt-8 border-t border-zinc-900">
-                <p>&copy; 2026 Baptiste Orain. Tous droits réservés.</p>
-                <p class="flex items-center gap-1 mt-2 md:mt-0">Design & Code pour <i class="ph ph-robot text-accent"></i> l'Industrie 4.0</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- GSAP & Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <!-- SplitText alternative (Simple custom logic to split text into words/chars for animation without Club GreenSock plugin) -->
-    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
-
+    <!-- ==========================================================================
+         JAVASCRIPT (Animations, Custom Cursor, Theme Toggle, ReactBits ColorBends Port)
+         ========================================================================== -->
     <script>
-        // --- 1. SMOOTH SCROLL (Lenis) ---
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            direction: 'vertical',
-            gestureDirection: 'vertical',
-            smooth: true,
-            mouseMultiplier: 1,
-            smoothTouch: false,
-            touchMultiplier: 2,
-        })
-
-        function raf(time) {
-            lenis.raf(time)
-            requestAnimationFrame(raf)
-        }
-        requestAnimationFrame(raf)
-
-        // Integrate Lenis with GSAP ScrollTrigger
-        gsap.registerPlugin(ScrollTrigger);
-        
-        lenis.on('scroll', ScrollTrigger.update);
-        gsap.ticker.add((time) => {
-          lenis.raf(time * 1000);
-        });
-        gsap.ticker.lagSmoothing(0, 0);
-
-        // --- 2. CUSTOM CURSOR ---
-        const cursorDot = document.querySelector('.cursor-dot');
-        const cursorOutline = document.querySelector('.cursor-outline');
-        
-        window.addEventListener('mousemove', (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
-
-            // Dot follows instantly
-            cursorDot.style.left = `${posX}px`;
-            cursorDot.style.top = `${posY}px`;
-
-            // Outline follows with slight delay using GSAP
-            gsap.to(cursorOutline, {
-                x: posX,
-                y: posY,
-                duration: 0.15,
-                ease: "power2.out"
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 0. Initialize Lenis Smooth Scroll ---
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                smoothWheel: true,
             });
-        });
 
-        // Hover effects for cursor
-        const links = document.querySelectorAll('a, button, .hover-magnetic');
-        links.forEach(link => {
-            link.addEventListener('mouseenter', () => {
-                gsap.to(cursorOutline, { scale: 1.5, backgroundColor: "rgba(6, 182, 212, 0.1)", duration: 0.3 });
-                gsap.to(cursorDot, { scale: 0, duration: 0.3 });
+            // Synchroniser Lenis avec ScrollTrigger (Vital pour la fluidité)
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+            gsap.ticker.lagSmoothing(0);
+
+            // --- 1. REACTBITS COLOR BENDS SHADER (Ported to Vanilla JS) ---
+            const canvas = document.getElementById('webgl-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: true });
+            
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.setClearColor(0x000000, 1);
+
+            const MAX_COLORS = 8;
+            const vertShader = `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = vec4(position, 1.0);
+                }
+            `;
+            const fragShader = `
+                #define MAX_COLORS ${MAX_COLORS}
+                uniform vec2 uCanvas;
+                uniform float uTime;
+                uniform float uSpeed;
+                uniform vec2 uRot;
+                uniform int uColorCount;
+                uniform vec3 uColors[MAX_COLORS];
+                uniform int uTransparent;
+                uniform float uScale;
+                uniform float uFrequency;
+                uniform float uWarpStrength;
+                uniform vec2 uPointer; // in NDC [-1,1]
+                uniform float uMouseInfluence;
+                uniform float uParallax;
+                uniform float uNoise;
+                uniform float uColorInvert; // NOUVEAU : Gère l'inversion pour le thème clair
+                varying vec2 vUv;
+
+                void main() {
+                    float t = uTime * uSpeed;
+                    vec2 p = vUv * 2.0 - 1.0;
+                    p += uPointer * uParallax * 0.1;
+                    vec2 rp = vec2(p.x * uRot.x - p.y * uRot.y, p.x * uRot.y + p.y * uRot.x);
+                    vec2 q = vec2(rp.x * (uCanvas.x / uCanvas.y), rp.y);
+                    q /= max(uScale, 0.0001);
+                    q /= 0.5 + 0.2 * dot(q, q);
+                    q += 0.2 * cos(t) - 7.56;
+                    vec2 toward = (uPointer - rp);
+                    q += toward * uMouseInfluence * 0.2;
+                    
+                    vec3 col = vec3(0.0);
+                    float a = 1.0;
+                    
+                    if (uColorCount > 0) {
+                        vec2 s = q;
+                        vec3 sumCol = vec3(0.0);
+                        float cover = 0.0;
+                        for (int i = 0; i < MAX_COLORS; ++i) {
+                            if (i >= uColorCount) break;
+                            s -= 0.01;
+                            vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+                            float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+                            float kBelow = clamp(uWarpStrength, 0.0, 1.0);
+                            float kMix = pow(kBelow, 0.3);
+                            float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+                            vec2 disp = (r - s) * kBelow;
+                            vec2 warped = s + disp * gain;
+                            float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+                            float m = mix(m0, m1, kMix);
+                            float w = 1.0 - exp(-6.0 / exp(6.0 * m));
+                            sumCol += uColors[i] * w;
+                            cover = max(cover, w);
+                        }
+                        col = clamp(sumCol, 0.0, 1.0);
+                        a = uTransparent > 0 ? cover : 1.0;
+                    }
+                    
+                    if (uNoise > 0.0001) {
+                        float n = fract(sin(dot(gl_FragCoord.xy + vec2(uTime), vec2(12.9898, 78.233))) * 43758.5453123);
+                        col += (n - 0.5) * uNoise;
+                        col = clamp(col, 0.0, 1.0);
+                    }
+                    
+                    vec3 rgb = (uTransparent > 0) ? col * a : col;
+                    
+                    // NOUVEAU : Inversion fluide et mathématique des couleurs pour le thème clair
+                    // Transforme le fond noir en blanc, et les vagues lumineuses en vagues sombres
+                    rgb = mix(rgb, vec3(1.0) - rgb, uColorInvert);
+                    
+                    gl_FragColor = vec4(rgb, a);
+                }
+            `;
+
+            // Configuration par défaut de ReactBits
+            const rotation = 45;
+            const rad = (rotation * Math.PI) / 180;
+            const uColorsArray = Array.from({ length: MAX_COLORS }, () => new THREE.Vector3(0, 0, 0));
+
+            const material = new THREE.ShaderMaterial({
+                vertexShader: vertShader,
+                fragmentShader: fragShader,
+                uniforms: {
+                    uCanvas: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                    uTime: { value: 0 },
+                    uSpeed: { value: 0.2 },
+                    uRot: { value: new THREE.Vector2(Math.cos(rad), Math.sin(rad)) },
+                    uColorCount: { value: 3 }, // Nous utilisons 3 couleurs monochromes pour le fond classique
+                    uColors: { value: uColorsArray },
+                    uTransparent: { value: 0 },
+                    uScale: { value: 1 },
+                    uFrequency: { value: 1 },
+                    uWarpStrength: { value: 1 },
+                    uPointer: { value: new THREE.Vector2(0, 0) },
+                    uMouseInfluence: { value: 1 },
+                    uParallax: { value: 0.5 },
+                    uNoise: { value: 0 }, // ZERO GRAIN appliqué ici !
+                    uColorInvert: { value: 0 } // NOUVEAU
+                }
             });
-            link.addEventListener('mouseleave', () => {
-                gsap.to(cursorOutline, { scale: 1, backgroundColor: "transparent", duration: 0.3 });
-                gsap.to(cursorDot, { scale: 1, duration: 0.3 });
+
+            const geometry = new THREE.PlaneGeometry(2, 2);
+            scene.add(new THREE.Mesh(geometry, material));
+
+            // Mouse tracking pour l'influence liquide
+            const pointerTarget = new THREE.Vector2(0, 0);
+            const pointerCurrent = new THREE.Vector2(0, 0);
+            
+            window.addEventListener('pointermove', (e) => {
+                const x = (e.clientX / window.innerWidth) * 2 - 1;
+                const y = -(e.clientY / window.innerHeight) * 2 + 1;
+                pointerTarget.set(x, y);
             });
-        });
 
+            function resize() {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                material.uniforms.uCanvas.value.set(window.innerWidth, window.innerHeight);
+            }
+            window.addEventListener('resize', resize);
+            resize();
 
-        // --- 4. ANIMATIONS (GSAP) ---
-        
-        // Loader Timeline
-        const tlLoader = gsap.timeline();
-        
-        tlLoader.to(".loader-progress", {
-            x: "0%",
-            duration: 1.5,
-            ease: "power4.inOut"
-        })
-        .to(".loader-inner", {
-            y: "0%",
-            duration: 0.8,
-            ease: "power4.out"
-        }, "-=0.5")
-        .to(".loader-inner", {
-            y: "-100%",
-            duration: 0.6,
-            delay: 0.5,
-            ease: "power4.in"
-        })
-        .to(".loader", {
-            y: "-100%",
-            duration: 1,
-            ease: "power4.inOut"
-        }, "-=0.2")
-        
-        // Hero Animation (Starts after loader)
-        .to(".hero-subtitle", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.5")
-        .to(".hero-title-line", { y: "0%", duration: 1.2, stagger: 0.15, ease: "power4.out" }, "-=0.8")
-        .to(".hero-desc", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, "-=0.8")
-        .to(".scroll-indicator", { opacity: 0.5, y: 0, duration: 1, ease: "power3.out" }, "-=0.8");
+            const clock = new THREE.Clock();
+            gsap.ticker.add(() => {
+                const dt = clock.getDelta();
+                material.uniforms.uTime.value = clock.elapsedTime;
+                
+                const amt = Math.min(1, dt * 8.0);
+                pointerCurrent.lerp(pointerTarget, amt);
+                material.uniforms.uPointer.value.copy(pointerCurrent);
+                
+                renderer.render(scene, camera);
+            });
 
-        // Subtle Orb Parallax on mouse move
-        const orb = document.querySelector('.orb-anim');
-        document.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5) * 50;
-            const y = (e.clientY / window.innerHeight - 0.5) * 50;
-            gsap.to(orb, { x: x, y: y, duration: 2, ease: "power2.out" });
-        });
+            // --- THÈMES CLASSIQUES MONOCHROMES & INVERSION ---
+            function hexToVec3(hex) {
+                let r = parseInt(hex.slice(1, 3), 16);
+                let g = parseInt(hex.slice(3, 5), 16);
+                let b = parseInt(hex.slice(5, 7), 16);
+                return new THREE.Vector3(r / 255, g / 255, b / 255);
+            }
 
-        // Scroll Animations - Sections
-        const sectionTitles = document.querySelectorAll('.section-title');
-        sectionTitles.forEach(title => {
-            gsap.from(title, {
-                scrollTrigger: {
-                    trigger: title,
-                    start: "top 85%",
+            const classicThemes = {
+                // Thème Clair : On génère des vagues très denses. L'inversion (= 1.0) les transformera en magnifique gris/noir sur un fond blanc pur.
+                light: {
+                    colors: ['#222222', '#555555', '#888888'],
+                    invert: 1.0
                 },
-                y: 50,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out"
+                // Thème Sombre : Noir naturel et vagues subtiles. Pas d'inversion (= 0.0).
+                dark: {
+                    colors: ['#050506', '#111111', '#1a1a1a'],
+                    invert: 0.0
+                }
+            };
+
+            function applyThemeColors(themeStr, duration = 0) {
+                const themeConfig = classicThemes[themeStr];
+                
+                for (let i = 0; i < 3; i++) {
+                    const target = hexToVec3(themeConfig.colors[i]);
+                    if (duration > 0) {
+                        gsap.to(material.uniforms.uColors.value[i], {
+                            x: target.x, y: target.y, z: target.z,
+                            duration: duration,
+                            ease: "power2.inOut"
+                        });
+                    } else {
+                        material.uniforms.uColors.value[i].copy(target);
+                    }
+                }
+
+                // NOUVEAU : Anime l'inversion du noir/blanc de manière parfaitement fluide
+                if (duration > 0) {
+                    gsap.to(material.uniforms.uColorInvert, {
+                        value: themeConfig.invert,
+                        duration: duration,
+                        ease: "power2.inOut"
+                    });
+                } else {
+                    material.uniforms.uColorInvert.value = themeConfig.invert;
+                }
+            }
+
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            applyThemeColors(currentTheme, 0);
+
+            // --- 2. GESTION DU MENU & SCROLLSPY ---
+            let isScrollingFromClick = false;
+            let scrollTimeout;
+
+            const navItems = document.querySelectorAll('.nav-links a');
+            const navLinksContainer = document.querySelector('.nav-links');
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'nav-active-indicator';
+            navLinksContainer.appendChild(indicator);
+
+            let currentActiveLink = null;
+
+            function moveIndicator(link) {
+                if (!link) {
+                    indicator.style.opacity = 0;
+                    return;
+                }
+                indicator.style.opacity = 1;
+                const leftPos = link.offsetLeft + (link.offsetWidth / 2) - 2;
+                indicator.style.transform = `translateX(${leftPos}px)`;
+            }
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if(this.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        navItems.forEach(link => link.classList.remove('active'));
+                        this.classList.add('active');
+                        currentActiveLink = this;
+                        moveIndicator(this);
+                        
+                        isScrollingFromClick = true;
+                        clearTimeout(scrollTimeout);
+                        lenis.scrollTo(this.getAttribute('href'), { offset: -50 });
+                        
+                        scrollTimeout = setTimeout(() => { isScrollingFromClick = false; }, 1300);
+                    }
+                });
             });
-        });
 
-        // About text stagger
-        gsap.from(".about-text", {
-            scrollTrigger: { trigger: "#about", start: "top 70%" },
-            y: 30, opacity: 0, duration: 1, stagger: 0.2, ease: "power3.out"
-        });
-        gsap.from(".about-tags span", {
-            scrollTrigger: { trigger: ".about-tags", start: "top 85%" },
-            scale: 0.8, opacity: 0, duration: 0.5, stagger: 0.1, ease: "back.out(1.7)"
-        });
+            // --- 3. CUSTOM CURSOR & ELEMENTS INTERACTIFS ---
+            const cursor = document.querySelector('.cursor-dot');
+            const interactives = document.querySelectorAll('.interactive, a, button');
 
-        // Timeline (Experience) Line Draw
-        if (window.innerWidth > 768) {
-            gsap.to(".timeline-progress", {
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+            });
+
+            interactives.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+
+            // --- 4. THEME TOGGLE (JOUR/NUIT) ---
+            const themeBtn = document.getElementById('theme-toggle');
+            const moonIcon = document.querySelector('.moon-icon');
+            const sunIcon = document.querySelector('.sun-icon');
+            
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+
+            themeBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                
+                document.documentElement.classList.add('theme-transitioning');
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+
+                // Transition fluide des couleurs du liquide via GSAP
+                applyThemeColors(newTheme, 1.5);
+
+                themeBtn.classList.add('spin-click');
+                setTimeout(() => { themeBtn.classList.remove('spin-click'); }, 1000);
+                setTimeout(() => { document.documentElement.classList.remove('theme-transitioning'); }, 1500);
+            });
+
+            function updateThemeIcon(theme) {
+                if (theme === 'dark') {
+                    moonIcon.style.display = 'none';
+                    sunIcon.style.display = 'block';
+                } else {
+                    moonIcon.style.display = 'block';
+                    sunIcon.style.display = 'none';
+                }
+            }
+
+            // --- 5. GSAP SCROLL ANIMATIONS ---
+            
+            // Évaporation ultra-fluide du fond liquide (Color Bends) au défilement
+            gsap.to('#webgl-canvas', {
+                opacity: 0,
                 scrollTrigger: {
-                    trigger: "#experience",
+                    trigger: '#hero',
+                    start: "top top",      // Commence à s'effacer dès le premier pixel de scroll
+                    end: "bottom 30%",     // Disparaît totalement juste avant d'arriver sur "À propos"
+                    scrub: true            // Synchronisé parfaitement avec la vitesse de la molette
+                }
+            });
+
+            const heroTl = gsap.timeline();
+            heroTl.from('.gsap-hero', { y: 50, opacity: 0, duration: 1.2, stagger: 0.2, ease: "power4.out", delay: 0.2 });
+
+            gsap.utils.toArray('.gsap-title').forEach(title => {
+                gsap.from(title, { scrollTrigger: { trigger: title, start: "top 85%", toggleActions: "play none none reverse" }, y: 40, opacity: 0, duration: 1, ease: "power3.out" });
+            });
+
+            gsap.utils.toArray('.gsap-fade').forEach(elem => {
+                gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 85%", toggleActions: "play none none reverse" }, y: 30, opacity: 0, duration: 0.8, ease: "power2.out" });
+            });
+
+            const cards = gsap.utils.toArray('.gsap-card');
+            gsap.from(cards, { scrollTrigger: { trigger: '.cards-grid', start: "top 80%" }, y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "back.out(1.2)" });
+
+            gsap.utils.toArray('section').forEach(section => {
+                gsap.to(section, { scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true }, y: -20, ease: "none" });
+            });
+
+            gsap.to('.marquee-text', { xPercent: -50, ease: "none", scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: 1 } });
+
+            gsap.to('.timeline-progress', { height: '100%', ease: "none", scrollTrigger: { trigger: '.experience-wrapper', start: "top center", end: "bottom center", scrub: true } });
+
+            gsap.utils.toArray('.gsap-card').forEach(card => {
+                const dot = card.querySelector('.timeline-dot');
+                if (dot) {
+                    gsap.to(dot, { backgroundColor: 'var(--accent)', boxShadow: '0 0 12px var(--accent)', duration: 0.1, scrollTrigger: { trigger: dot, start: "center center", toggleActions: "play none none reverse" } });
+                }
+            });
+
+            const sectionsForSpy = gsap.utils.toArray('section');
+
+            navItems.forEach(link => { link.addEventListener('mouseenter', () => moveIndicator(link)); });
+            navLinksContainer.addEventListener('mouseleave', () => { moveIndicator(currentActiveLink); });
+
+            ScrollTrigger.create({
+                trigger: '#hero',
+                start: "top 50%",
+                end: "bottom 50%",
+                onToggle: self => {
+                    if (isScrollingFromClick) return;
+                    if (self.isActive) {
+                        navItems.forEach(link => link.classList.remove('active'));
+                        currentActiveLink = null;
+                        moveIndicator(null);
+                    }
+                }
+            });
+
+            sectionsForSpy.forEach(section => {
+                ScrollTrigger.create({
+                    trigger: section,
                     start: "top 50%",
-                    end: "bottom 80%",
-                    scrub: 1
-                },
-                scaleY: 1,
-                ease: "none"
+                    end: "bottom 50%",
+                    onToggle: self => {
+                        if (isScrollingFromClick) return;
+                        if (self.isActive) {
+                            navItems.forEach(link => link.classList.remove('active'));
+                            const activeLink = document.querySelector(`.nav-links a[href="#${section.id}"]`);
+                            if (activeLink) {
+                                activeLink.classList.add('active');
+                                currentActiveLink = activeLink;
+                                moveIndicator(activeLink);
+                            }
+                        }
+                    }
+                });
             });
-        }
 
-        // Timeline items fade in
-        const timelineItems = document.querySelectorAll('.timeline-item');
-        timelineItems.forEach((item, i) => {
-            gsap.from(item, {
-                scrollTrigger: {
-                    trigger: item,
-                    start: "top 80%",
-                },
-                y: 50,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out"
-            });
+            window.addEventListener('resize', () => { if (currentActiveLink) moveIndicator(currentActiveLink); });
         });
-
-        // Education Cards stagger
-        gsap.from(".edu-card", {
-            scrollTrigger: { trigger: "#education", start: "top 75%" },
-            y: 50, opacity: 0, duration: 0.8, stagger: 0.2, ease: "power3.out"
-        });
-
-        // Skills Bars
-        const skillBars = document.querySelectorAll('.skill-bar');
-        skillBars.forEach(bar => {
-            gsap.from(bar, {
-                scrollTrigger: {
-                    trigger: bar,
-                    start: "top 90%"
-                },
-                scaleX: 0,
-                duration: 1.5,
-                ease: "power4.out"
-            });
-        });
-
-        // Soft skills tag stagger
-        gsap.from(".soft-skill-tag", {
-            scrollTrigger: { trigger: ".soft-skill-tag", start: "top 85%" },
-            y: 20, opacity: 0, duration: 0.5, stagger: 0.1, ease: "power2.out"
-        });
-
-        // Parallax big background text
-        gsap.to(".skills-bg-text", {
-            scrollTrigger: {
-                trigger: "#skills",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1
-            },
-            x: "-20%",
-            ease: "none"
-        });
-
-        // Footer Title
-        gsap.from(".footer-title", {
-            scrollTrigger: { trigger: "footer", start: "top 80%" },
-            y: 50, opacity: 0, duration: 1, ease: "power3.out"
-        });
-
     </script>
 </body>
-
 </html>
