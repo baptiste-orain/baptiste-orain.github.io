@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+  <style>
+    text {
+      fill: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: bold;
+    }
+  </style>
+
+  <text x="48.5%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="38">
+    BO
+  </text>
+</svg>
