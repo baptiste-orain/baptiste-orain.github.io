@@ -35,6 +35,7 @@
             --pill-bg: #f3f4f6;
             --pill-text: #111111;
             --bg-glow: rgba(252, 252, 252, 0.85); /* Nouveau : Halo protecteur clair */
+            --spotlight-color: rgba(37, 99, 235, 0.025); /* Atténué : Halo carte clair très doux */
         }
 
         [data-theme="dark"] {
@@ -48,6 +49,7 @@
             --pill-bg: #1e1e24;
             --pill-text: #ffffff;
             --bg-glow: rgba(10, 10, 12, 0.85); /* Nouveau : Halo protecteur sombre */
+            --spotlight-color: rgba(255, 255, 255, 0.035); /* Atténué : Halo carte sombre ultra diffus */
         }
 
         /* ==========================================================================
@@ -228,10 +230,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 44px; /* Agrandit pour englober l'anneau de progression (était 32px) */
+            height: 44px;
             border-radius: 50%;
             transition: background 0.3s;
+            position: relative;
         }
 
         #theme-toggle:hover {
@@ -248,7 +251,8 @@
             to { transform: rotate(360deg) scale(1.3); }
         }
 
-        #theme-toggle svg {
+        #theme-toggle .moon-icon,
+        #theme-toggle .sun-icon {
             width: 20px;
             height: 20px;
             fill: none;
@@ -257,15 +261,38 @@
             stroke-linecap: round;
             stroke-linejoin: round;
             transition: transform 0.3s ease;
+            position: relative;
+            z-index: 2;
         }
 
-        #theme-toggle:hover svg {
+        #theme-toggle:hover .moon-icon,
+        #theme-toggle:hover .sun-icon {
             animation: spin-smooth 6s linear infinite;
             transform: scale(1.1);
         }
 
-        #theme-toggle.spin-click svg {
+        #theme-toggle.spin-click .moon-icon,
+        #theme-toggle.spin-click .sun-icon {
             animation: spin-fast 1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* --- NOUVEAU : Anneau de progression --- */
+        .scroll-progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .ring-bg {
+            transition: stroke 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .ring-progress {
+            transition: stroke 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            /* L'offset est géré par JS en temps réel pour être calé sur Lenis */
         }
 
         /* ==========================================================================
@@ -430,7 +457,8 @@
             font-size: 1.1rem;
             backdrop-filter: blur(8px);
             white-space: nowrap;
-            transition: box-shadow 0.3s ease, background 0.3s ease;
+            /* Transition ultra smooth sur le transform et l'ombre */
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.4s ease;
             display: inline-flex;
             justify-content: center;
             align-items: center;
@@ -438,8 +466,13 @@
         }
 
         .badge:hover {
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08); /* Ombre douce personnalisée */
             background: var(--bg-color);
+            transform: translateY(-6px); /* Monte légèrement au survol */
+        }
+
+        [data-theme="dark"] .badge:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* Ombre adaptée au mode sombre */
         }
 
         /* ==========================================================================
@@ -514,6 +547,30 @@
             max-width: 800px;
             width: 100%;
             box-shadow: var(--card-shadow);
+        }
+
+        /* --- NOUVEAU : Effet Spotlight pour les cartes --- */
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .spotlight-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* Rayon élargi à 800px pour une diffusion beaucoup plus douce et naturelle */
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--spotlight-color), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .spotlight-card:hover::before {
+            opacity: 1;
+        }
+        .spotlight-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .contact-title {
@@ -722,6 +779,11 @@
             <a href="#contact" class="interactive magnetic">Contact</a>
         </div>
         <button id="theme-toggle" class="interactive magnetic" aria-label="Toggle Theme">
+            <!-- NOUVEAU : Anneau SVG de progression de scroll -->
+            <svg class="scroll-progress-ring" width="44" height="44" viewBox="0 0 44 44">
+                <circle class="ring-bg" cx="22" cy="22" r="21" stroke="var(--glass-border)" stroke-width="2" fill="none" />
+                <circle class="ring-progress" cx="22" cy="22" r="21" stroke="var(--accent)" stroke-width="2" fill="none" stroke-linecap="round" />
+            </svg>
             <!-- Moon SVG for light mode -->
             <svg class="moon-icon" viewBox="0 0 24 24">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -760,7 +822,7 @@
     <!-- About Section -->
     <section id="about">
         <h2 class="section-title gsap-title">Profil</h2>
-        <div class="about-box gsap-fade interactive tilt-element" data-tilt-max="2">
+        <div class="about-box gsap-fade interactive tilt-element spotlight-card" data-tilt-max="2">
             <p class="about-text">
                 Actuellement en <strong>Licence Pro CAPPI</strong> en alternance chez <strong>Actemium</strong> (VINCI Energies), je souhaite développer mes compétences techniques et managériales en intégrant le cycle ingénieur du CESI. 
                 <br><br>
@@ -834,7 +896,7 @@
                 <!-- Experience 1 -->
                 <div class="experience-item gsap-exp-item">
                     <div class="timeline-dot"></div>
-                    <div class="card interactive tilt-element" data-tilt-max="6">
+                    <div class="card interactive tilt-element spotlight-card" data-tilt-max="6">
                         <span class="card-date">09/2025 - Présent</span>
                         <h3 class="card-title">Actemium <span style="font-weight:400; font-size:1rem;">(VINCI Energies)</span></h3>
                         <h4 class="card-subtitle">Alternant Technicien Etudes Automatisme</h4>
@@ -848,7 +910,7 @@
                 <!-- Experience 2 -->
                 <div class="experience-item gsap-exp-item">
                     <div class="timeline-dot"></div>
-                    <div class="card interactive tilt-element" data-tilt-max="6">
+                    <div class="card interactive tilt-element spotlight-card" data-tilt-max="6">
                         <span class="card-date">05/2025 - 07/2025</span>
                         <h3 class="card-title">INEOS Inovyn</h3>
                         <h4 class="card-subtitle">Stagiaire Automatisme & Électricité</h4>
@@ -861,7 +923,7 @@
                 <!-- Education 1 -->
                 <div class="experience-item gsap-exp-item">
                     <div class="timeline-dot"></div>
-                    <div class="card interactive tilt-element" data-tilt-max="6">
+                    <div class="card interactive tilt-element spotlight-card" data-tilt-max="6">
                         <span class="card-date">09/2025 - Présent</span>
                         <h3 class="card-title">Licence Pro CAPPI</h3>
                         <h4 class="card-subtitle">Pôle Formation UIMM</h4>
@@ -875,7 +937,7 @@
                 <!-- Education 2 -->
                 <div class="experience-item gsap-exp-item">
                     <div class="timeline-dot"></div>
-                    <div class="card interactive tilt-element" data-tilt-max="6">
+                    <div class="card interactive tilt-element spotlight-card" data-tilt-max="6">
                         <span class="card-date">09/2023 - 07/2025</span>
                         <h3 class="card-title">BTS Électrotechnique</h3>
                         <h4 class="card-subtitle">Lycée Jacques Duhamel</h4>
@@ -890,7 +952,7 @@
 
     <!-- Contact Section -->
     <section id="contact">
-        <div class="contact-box interactive tilt-element" data-tilt-max="2">
+        <div class="contact-box interactive tilt-element gsap-fade spotlight-card" data-tilt-max="2">
             <h2 class="contact-title">Prêt à collaborer ?</h2>
             <p class="contact-subtitle">N'hésitez pas à me contacter pour une opportunité d'alternance ou pour échanger sur un projet.</p>
             
@@ -1264,12 +1326,15 @@
             magneticElements.forEach(elem => {
                 elem.addEventListener('mousemove', (e) => {
                     const rect = elem.getBoundingClientRect();
-                    const x = (e.clientX - rect.left - rect.width / 2) * 0.4; 
-                    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
-                    gsap.to(elem, { x: x, y: y, duration: 0.5, ease: "power2.out" });
+                    // Réduction légère de la force (0.3 au lieu de 0.4)
+                    const x = (e.clientX - rect.left - rect.width / 2) * 0.3; 
+                    const y = (e.clientY - rect.top - rect.height / 2) * 0.3;
+                    // Durée allongée et courbe plus douce (power3.out au lieu de power2.out)
+                    gsap.to(elem, { x: x, y: y, duration: 0.8, ease: "power3.out" });
                 });
                 elem.addEventListener('mouseleave', () => {
-                    gsap.to(elem, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.3)" });
+                    // Rebond (elastic) beaucoup plus souple et long pour revenir à la place
+                    gsap.to(elem, { x: 0, y: 0, duration: 1.2, ease: "elastic.out(1, 0.4)" });
                 });
             });
 
@@ -1328,8 +1393,19 @@
                 gsap.from(elem, { scrollTrigger: { trigger: elem, start: "top 85%", toggleActions: "play none none reverse" }, y: 30, opacity: 0, duration: 0.8, ease: "power2.out" });
             });
 
-            const expItems = gsap.utils.toArray('.gsap-exp-item');
-            gsap.from(expItems, { scrollTrigger: { trigger: '.cards-list', start: "top 80%" }, y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: "back.out(1.2)" });
+            gsap.utils.toArray('.gsap-exp-item').forEach(item => {
+                gsap.from(item, { 
+                    scrollTrigger: { 
+                        trigger: item, 
+                        start: "top 70%", /* Remonté à 70% pour que la disparition s'amorce plus tôt */
+                        toggleActions: "play none none reverse" 
+                    }, 
+                    y: 60, 
+                    opacity: 0, 
+                    duration: 0.8, 
+                    ease: "back.out(1.2)" 
+                });
+            });
 
             gsap.utils.toArray('section').forEach(section => {
                 gsap.to(section, { scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true }, y: -20, ease: "none" });
@@ -1386,6 +1462,41 @@
             });
 
             window.addEventListener('resize', () => { if (currentActiveLink) moveIndicator(currentActiveLink); });
+
+            // --- 7. EFFET SPOTLIGHT SUR LES CARTES ---
+            const spotlightCards = document.querySelectorAll('.spotlight-card');
+            spotlightCards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+
+            // --- 8. INDICATEUR DE SCROLL DANS LE MENU ---
+            const progressRing = document.querySelector('.ring-progress');
+            if(progressRing) {
+                const radius = progressRing.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                
+                progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+                progressRing.style.strokeDashoffset = circumference;
+
+                function updateScrollProgress() {
+                    const scrollPx = window.scrollY;
+                    const winHeightPx = document.documentElement.scrollHeight - window.innerHeight;
+                    const scrollLen = winHeightPx > 0 ? scrollPx / winHeightPx : 0;
+                    const offset = circumference - scrollLen * circumference;
+                    progressRing.style.strokeDashoffset = offset;
+                }
+                
+                // Mettre à jour au scroll via Lenis (pour une fluidité 100% native)
+                lenis.on('scroll', updateScrollProgress);
+                updateScrollProgress(); // Initialisation au chargement
+            }
+
         });
     </script>
 </body>
