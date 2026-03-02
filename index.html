@@ -437,6 +437,11 @@
             display: flex;
             gap: 2rem;
             padding-right: 2rem;
+            flex-shrink: 0; /* Empêche les boîtes de s'écraser, garantit un calcul mathématique parfait pour la boucle */
+            will-change: transform; /* Force l'accélération matérielle (GPU) */
+            -webkit-backface-visibility: hidden; /* Supprime le scintillement et les artefacts sur Chrome/Safari */
+            backface-visibility: hidden;
+            transform: translateZ(0);
         }
 
         .skills-marquee-track.left .skills-marquee-content {
@@ -877,8 +882,26 @@
                     <div class="badge interactive scramble" data-text="MS Project">MS Project</div>
                     <div class="badge interactive scramble" data-text="Automates (API/SAFETY)">Automates (API/SAFETY)</div>
                 </div>
-                <!-- Duplication pour boucle infinie parfaite -->
-                <div class="skills-marquee-content">
+                <!-- Duplication pour boucle infinie parfaite (4 copies pour couvrir même les écrans 4K ultrawide) -->
+                <div class="skills-marquee-content" aria-hidden="true">
+                    <div class="badge interactive scramble" data-text="TIA Portal">TIA Portal</div>
+                    <div class="badge interactive scramble" data-text="Control Expert">Control Expert</div>
+                    <div class="badge interactive scramble" data-text="Fanuc Roboguide">Fanuc Roboguide</div>
+                    <div class="badge interactive scramble" data-text="PCVue (SCADA)">PCVue (SCADA)</div>
+                    <div class="badge interactive scramble" data-text="SEE Electrical">SEE Electrical</div>
+                    <div class="badge interactive scramble" data-text="MS Project">MS Project</div>
+                    <div class="badge interactive scramble" data-text="Automates (API/SAFETY)">Automates (API/SAFETY)</div>
+                </div>
+                <div class="skills-marquee-content" aria-hidden="true">
+                    <div class="badge interactive scramble" data-text="TIA Portal">TIA Portal</div>
+                    <div class="badge interactive scramble" data-text="Control Expert">Control Expert</div>
+                    <div class="badge interactive scramble" data-text="Fanuc Roboguide">Fanuc Roboguide</div>
+                    <div class="badge interactive scramble" data-text="PCVue (SCADA)">PCVue (SCADA)</div>
+                    <div class="badge interactive scramble" data-text="SEE Electrical">SEE Electrical</div>
+                    <div class="badge interactive scramble" data-text="MS Project">MS Project</div>
+                    <div class="badge interactive scramble" data-text="Automates (API/SAFETY)">Automates (API/SAFETY)</div>
+                </div>
+                <div class="skills-marquee-content" aria-hidden="true">
                     <div class="badge interactive scramble" data-text="TIA Portal">TIA Portal</div>
                     <div class="badge interactive scramble" data-text="Control Expert">Control Expert</div>
                     <div class="badge interactive scramble" data-text="Fanuc Roboguide">Fanuc Roboguide</div>
@@ -899,8 +922,24 @@
                     <div class="badge interactive scramble" data-text="Prototypage">Prototypage</div>
                     <div class="badge interactive scramble" data-text="Robotique Industrielle">Robotique Industrielle</div>
                 </div>
-                <!-- Duplication pour boucle infinie parfaite -->
-                <div class="skills-marquee-content">
+                <!-- Duplication pour boucle infinie parfaite (4 copies) -->
+                <div class="skills-marquee-content" aria-hidden="true">
+                    <div class="badge interactive scramble" data-text="Esprit d'équipe">Esprit d'équipe</div>
+                    <div class="badge interactive scramble" data-text="Capacité d'adaptation">Capacité d'adaptation</div>
+                    <div class="badge interactive scramble" data-text="Rigueur & Méthode">Rigueur & Méthode</div>
+                    <div class="badge interactive scramble" data-text="Industrie 4.0">Industrie 4.0</div>
+                    <div class="badge interactive scramble" data-text="Prototypage">Prototypage</div>
+                    <div class="badge interactive scramble" data-text="Robotique Industrielle">Robotique Industrielle</div>
+                </div>
+                <div class="skills-marquee-content" aria-hidden="true">
+                    <div class="badge interactive scramble" data-text="Esprit d'équipe">Esprit d'équipe</div>
+                    <div class="badge interactive scramble" data-text="Capacité d'adaptation">Capacité d'adaptation</div>
+                    <div class="badge interactive scramble" data-text="Rigueur & Méthode">Rigueur & Méthode</div>
+                    <div class="badge interactive scramble" data-text="Industrie 4.0">Industrie 4.0</div>
+                    <div class="badge interactive scramble" data-text="Prototypage">Prototypage</div>
+                    <div class="badge interactive scramble" data-text="Robotique Industrielle">Robotique Industrielle</div>
+                </div>
+                <div class="skills-marquee-content" aria-hidden="true">
                     <div class="badge interactive scramble" data-text="Esprit d'équipe">Esprit d'équipe</div>
                     <div class="badge interactive scramble" data-text="Capacité d'adaptation">Capacité d'adaptation</div>
                     <div class="badge interactive scramble" data-text="Rigueur & Méthode">Rigueur & Méthode</div>
