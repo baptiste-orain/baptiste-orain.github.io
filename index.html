@@ -201,6 +201,7 @@
             opacity: 0.7;
             position: relative;
             padding: 0.25rem 0;
+            display: inline-block; /* REQUIS : Permet à GSAP d'animer la position Y */
             transition: opacity 0.3s ease, color 0.3s ease;
         }
 
@@ -354,15 +355,19 @@
             font-weight: 600;
             border-radius: 999px;
             font-size: 1rem;
-            transition: box-shadow 0.3s ease;
+            /* Transition plus complète et douce pour le hover */
+            transition: box-shadow 0.4s ease, filter 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .btn-pill:hover {
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            filter: brightness(1.25); /* Éclaircit la couleur du bouton */
+            transform: translateY(-3px); /* Soulèvement subtil */
         }
         
         [data-theme="dark"] .btn-pill:hover {
-             box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+             box-shadow: 0 0 20px rgba(255,255,255,0.4); /* Glow blanc pour amplifier l'effet lumineux */
+             filter: brightness(1.1);
         }
 
         /* ==========================================================================
@@ -399,6 +404,10 @@
             font-weight: 600;
             color: var(--accent);
         }
+
+        /* --- NOUVEAU : Parallaxe 3D Interne (About Box) --- */
+        .about-box .about-text { transform: translateZ(30px); }
+        .about-box .specialty { transform: translateZ(15px); }
 
         /* ==========================================================================
            8. SKILLS SECTION (Infinite Marquee)
@@ -527,6 +536,12 @@
             line-height: 1.6;
             font-size: 1rem;
         }
+
+        /* --- NOUVEAU : Parallaxe 3D Interne (Experience Cards) --- */
+        .card .card-date { transform: translateZ(20px); }
+        .card .card-title { transform: translateZ(45px); }
+        .card .card-subtitle { transform: translateZ(30px); }
+        .card .card-desc { transform: translateZ(15px); }
 
         /* ==========================================================================
            10. CONTACT SECTION
@@ -741,18 +756,32 @@
         /* Responsive */
         @media (max-width: 768px) {
             nav {
-                width: 90%;
-                justify-content: space-between;
-                padding: 1rem;
+                width: 95%;
+                justify-content: center;
+                padding: 0.75rem 1rem;
+                gap: 1rem;
             }
             .nav-links {
-                display: none;
+                display: flex; /* Affiche le menu même sur la petite fenêtre de prévisualisation */
+                gap: 1rem;
+            }
+            .nav-links a {
+                font-size: 0.8rem;
             }
             section {
                 padding: 5rem 1.5rem;
             }
             .contact-item {
                 font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            nav {
+                gap: 0.5rem;
+            }
+            .nav-links a {
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -1319,7 +1348,10 @@
                     lenis.start(); 
                 }
             }, "-=0.1")
-            .from('.gsap-hero', { y: 50, opacity: 0, duration: 1.0, stagger: 0.15, ease: "power4.out" }, "-=0.4");
+            .from('.gsap-hero', { y: 50, opacity: 0, duration: 1.0, stagger: 0.15, ease: "power4.out" }, "-=0.4")
+            // CORRECTION : Apparition de la NavBar et des liens beaucoup plus tôt (offsets augmentés)
+            .from('nav', { y: -80, opacity: 0, duration: 1, ease: "power3.out", clearProps: "all" }, "-=1.2")
+            .from('.nav-links a, #theme-toggle', { y: 20, opacity: 0, duration: 0.6, stagger: 0.1, ease: "back.out(1.5)", clearProps: "all" }, "-=0.9");
 
             // B. EFFET MAGNÉTIQUE SUR LES BOUTONS
             const magneticElements = document.querySelectorAll('.magnetic');
@@ -1413,12 +1445,45 @@
 
             gsap.to('.marquee-text', { xPercent: -50, ease: "none", scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: 1 } });
 
-            gsap.to('.timeline-progress', { height: '100%', ease: "none", scrollTrigger: { trigger: '.experience-wrapper', start: "top center", end: "bottom center", scrub: true } });
+            // NOUVEAU : La ligne s'aimante à chaque pastille au moment de l'apparition de la carte
+            const timelineProgress = document.querySelector('.timeline-progress');
+            const expItemsArray = gsap.utils.toArray('.gsap-exp-item');
 
-            gsap.utils.toArray('.gsap-exp-item').forEach(item => {
+            expItemsArray.forEach((item, index) => {
                 const dot = item.querySelector('.timeline-dot');
                 if (dot) {
-                    gsap.to(dot, { backgroundColor: 'var(--accent)', boxShadow: '0 0 12px var(--accent)', duration: 0.1, scrollTrigger: { trigger: dot, start: "center center", toggleActions: "play none none reverse" } });
+                    // 1. Animation de la pastille (s'allume en bleu)
+                    gsap.to(dot, { 
+                        backgroundColor: 'var(--accent)', 
+                        boxShadow: '0 0 12px var(--accent)', 
+                        duration: 0.3, 
+                        scrollTrigger: { 
+                            trigger: item, 
+                            start: "top 70%", // Synchronisé avec l'apparition de la carte
+                            toggleActions: "play none none reverse" 
+                        } 
+                    });
+                    // 2. Animation de la barre de progression (descend jusqu'à la pastille sans dépassement)
+                    ScrollTrigger.create({
+                        trigger: item,
+                        start: "top 70%", // Synchronisé avec l'apparition de la carte
+                        onEnter: () => {
+                            // Calcule la hauteur dynamique exacte jusqu'au centre de cette pastille
+                            const targetHeight = item.offsetTop + dot.offsetTop + (dot.offsetHeight / 2);
+                            // Remplacement de "back.out(1.2)" par "power3.out" pour éviter le dépassement
+                            gsap.to(timelineProgress, { height: targetHeight, duration: 0.8, ease: "power3.out", overwrite: "auto" });
+                        },
+                        onLeaveBack: () => {
+                            // Quand on remonte, la ligne se rétracte vers la pastille précédente (ou à 0)
+                            let targetHeight = 0;
+                            if (index > 0) {
+                                const prevItem = expItemsArray[index - 1];
+                                const prevDot = prevItem.querySelector('.timeline-dot');
+                                targetHeight = prevItem.offsetTop + prevDot.offsetTop + (prevDot.offsetHeight / 2);
+                            }
+                            gsap.to(timelineProgress, { height: targetHeight, duration: 0.6, ease: "power3.out", overwrite: "auto" });
+                        }
+                    });
                 }
             });
 
